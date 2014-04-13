@@ -10,6 +10,7 @@ import (
     "strings"
     "encoding/json"
     "fmt"
+    "path"
 )
 
 var validPath = regexp.MustCompile("^/(article)/([a-zA-Z0-9]+)$")
@@ -25,6 +26,27 @@ type PageMetaData struct {
 type Page struct {
     Meta PageMetaData
     Body template.HTML
+}
+
+func getAllArticleIds() ([]string) {
+    folder := "./"
+    ids := []string{};
+    
+    files,err := ioutil.ReadDir(folder)
+    if err != nil {
+        return ids;
+    }
+
+    for _, file := range files {
+        filename := file.Name();
+        ext := path.Ext(filename);
+        if ext == ".txt" {
+            name := filename[0:len(filename)-len(ext)];
+            ids = append(ids, name)
+        }
+    }
+
+    return ids;
 }
 
 func parseArticleData(article_data []byte) ([]byte, PageMetaData) {

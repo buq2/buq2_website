@@ -13,8 +13,10 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
     runtime.GOMAXPROCS(runtime.NumCPU())
 
+fmt.Println(getAllArticleIds())
     http.HandleFunc("/", mainHandler)
     http.HandleFunc("/article/", articleHandler)
     http.Handle("/static/", fileserverHandler())
     http.ListenAndServe(":8080",  nil)
+    
 }
