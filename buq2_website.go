@@ -8,6 +8,7 @@ import (
     "html/template"
     "regexp"
     "errors"
+    "github.com/russross/blackfriday"
 )
 
 var validPath = regexp.MustCompile("^/(article)/([a-zA-Z0-9]+)$")
@@ -15,7 +16,7 @@ var templates = template.Must(template.ParseFiles("article.html"))
 
 type Page struct {
     Title string
-    Body  []byte
+    Body  template.HTML
 }
 
 
@@ -25,7 +26,35 @@ func loadPage(title string) (*Page, error) {
     if err != nil {
         return nil, err
     }
-    return &Page{Title: title, Body: body}, nil
+
+    // Convert markdown to thml
+    htmlFlags := 0
+    htmlFlags |= blackfriday.HTML_USE_XHTML
+    htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
+    htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
+    htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
+    // Can't use HTML_SANITIZE_OUTPUT as it will remove custom
+    // classes from code blocks, etc
+    //htmlFlags |= blackfriday.HTML_SANITIZE_OUTPUT
+    // Can't use GitHub style as highlight.js does not support it
+    //htmlFlags |= blackfriday.HTML_GITHUB_BLOCKCODE
+    renderer := blackfriday.HtmlRenderer(htmlFlags, "", "")
+    
+    extensions := 0
+    extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
+    extensions |= blackfriday.EXTENSION_TABLES
+    extensions |= blackfriday.EXTENSION_FENCED_CODE
+    extensions |= blackfriday.EXTENSION_AUTOLINK
+    extensions |= blackfriday.EXTENSION_STRIKETHROUGH
+    extensions |= blackfriday.EXTENSION_SPACE_HEADERS
+    extensions |= blackfriday.EXTENSION_HEADER_IDS
+    
+    body_markdown := blackfriday.Markdown(body, renderer, extensions);
+    
+    return &Page{
+        Title: title,
+        Body: template.HTML(body_markdown),
+    }, nil
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
