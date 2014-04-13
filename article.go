@@ -7,23 +7,59 @@ import (
     "regexp"
     "errors"
     "github.com/russross/blackfriday"
+    "strings"
+    "encoding/json"
+    "fmt"
 )
 
 var validPath = regexp.MustCompile("^/(article)/([a-zA-Z0-9]+)$")
 var templates = template.Must(template.ParseFiles("article.html"))
 
-type Page struct {
-    Title string
-    Body  template.HTML
+type PageMetaData struct {
+    Title string;
+    ShortDescription string;
+    CreateDate string;
+    ModifiedDate string;
 }
 
+type Page struct {
+    Meta PageMetaData
+    Body template.HTML
+}
+
+func parseArticleData(article_data []byte) ([]byte, PageMetaData) {
+    article_header_separator := "---------- META END ----------";
+    separator_len := len(article_header_separator)
+    separator_begin := strings.Index(string(article_data), article_header_separator)
+
+    article_body_data := []byte{};
+    article_meta_data := []byte{};
+
+    if separator_begin > 0 {
+        // Found separator, split the data into meta data and body data
+        article_meta_data = article_data[:separator_begin-1];
+        article_body_data = article_data[separator_begin+separator_len:];
+    } else {
+        // Did not find separator, meta data is empty
+        article_body_data = article_data
+    }
+
+    meta := PageMetaData{}
+    if err := json.Unmarshal(article_meta_data, &meta); err != nil {
+        fmt.Println("Failed to parse article meta data")
+    }
+    
+    return article_body_data, meta
+}
 
 func loadPage(title string) (*Page, error) {
     filename := title + ".txt"
-    body, err := ioutil.ReadFile(filename)
+    article_data, err := ioutil.ReadFile(filename)
     if err != nil {
         return nil, err
     }
+
+    body, meta := parseArticleData(article_data)
 
     // Convert markdown to thml
     htmlFlags := 0
@@ -50,7 +86,7 @@ func loadPage(title string) (*Page, error) {
     body_markdown := blackfriday.Markdown(body, renderer, extensions);
     
     return &Page{
-        Title: title,
+        Meta: meta,
         Body: template.HTML(body_markdown),
     }, nil
 }
