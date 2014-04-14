@@ -1,15 +1,15 @@
 package main
 
 import (
-    "os"
-    "path"
+	"os"
+	"path"
 )
 
 func executable() (string, error) {
-    return os.Readlink("/proc/self/exe")
+	return os.Readlink("/proc/self/exe")
 }
 
-func executablePath() (string) {
-    exe_path, _ := executable()
-    return path.Dir(exe_path)
+func executablePath() string {
+	exe_path, _ := executable()
+	return path.Dir(exe_path)
 }
