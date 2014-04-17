@@ -14,7 +14,7 @@ import (
 )
 
 var validPath = regexp.MustCompile("^/(article)/([a-zA-Z0-9]+)$")
-var templates = template.Must(template.ParseFiles("article.html"))
+var article_templates = template.Must(template.ParseFiles("article.html"))
 
 type PageMetaData struct {
 	Title            string
@@ -23,9 +23,39 @@ type PageMetaData struct {
 	ModifiedDate     string
 }
 
-type Page struct {
-	Meta PageMetaData
-	Body template.HTML
+type Article struct {
+	Body             template.HTML
+	Title            string
+	ShortDescription string
+	CreateDate       string
+	ModifiedDate     string
+	Id               string
+}
+
+func GetAllArticles() []*Article {
+	ids := getAllArticleIds()
+	articles := make([]*Article, len(ids))
+
+	for idx, id := range ids {
+		articles[idx], _ = NewArticle(id)
+	}
+
+	return articles
+}
+
+func NewArticle(id string) (*Article, error) {
+	// Try to find the data to the article with certain id
+	filename := id + ".txt"
+	article_data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	article := new(Article)
+	err = parseRawTextArticleData(article_data, article)
+	article.Id = id
+
+	return article, err
 }
 
 func getAllArticleIds() []string {
@@ -49,40 +79,7 @@ func getAllArticleIds() []string {
 	return ids
 }
 
-func parseArticleData(article_data []byte) ([]byte, PageMetaData) {
-	article_header_separator := "---------- META END ----------"
-	separator_len := len(article_header_separator)
-	separator_begin := strings.Index(string(article_data), article_header_separator)
-
-	article_body_data := []byte{}
-	article_meta_data := []byte{}
-
-	if separator_begin > 0 {
-		// Found separator, split the data into meta data and body data
-		article_meta_data = article_data[:separator_begin-1]
-		article_body_data = article_data[separator_begin+separator_len:]
-	} else {
-		// Did not find separator, meta data is empty
-		article_body_data = article_data
-	}
-
-	meta := PageMetaData{}
-	if err := json.Unmarshal(article_meta_data, &meta); err != nil {
-		fmt.Println("Failed to parse article meta data")
-	}
-
-	return article_body_data, meta
-}
-
-func loadPage(title string) (*Page, error) {
-	filename := title + ".txt"
-	article_data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	body, meta := parseArticleData(article_data)
-
+func parseArticleBodyToHtml(article_body_data []byte) template.HTML {
 	// Convert markdown to thml
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_XHTML
@@ -105,39 +102,74 @@ func loadPage(title string) (*Page, error) {
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
 	extensions |= blackfriday.EXTENSION_HEADER_IDS
 
-	body_markdown := blackfriday.Markdown(body, renderer, extensions)
+	body_markdown := blackfriday.Markdown(article_body_data, renderer, extensions)
 
-	return &Page{
-		Meta: meta,
-		Body: template.HTML(body_markdown),
-	}, nil
+	return template.HTML(body_markdown)
 }
 
-func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
+func parseRawTextArticleData(article_data []byte, article *Article) error {
+	// Find meta and body separator
+	article_header_separator := "---------- META END ----------"
+	separator_len := len(article_header_separator)
+	separator_begin := strings.Index(string(article_data), article_header_separator)
+
+	// Separate meta and body data
+	article_body_data := []byte{}
+	article_meta_data := []byte{}
+
+	if separator_begin > 0 {
+		// Found separator, split the data into meta data and body data
+		article_meta_data = article_data[:separator_begin-1]
+		article_body_data = article_data[separator_begin+separator_len:]
+	} else {
+		// Did not find separator, meta data is empty
+		article_body_data = article_data
+	}
+
+	// Read metadata
+	meta := PageMetaData{}
+	if err := json.Unmarshal(article_meta_data, &meta); err != nil {
+		fmt.Println("Failed to parse article meta data. Returning empty meta data")
+	}
+
+	// Put metadata into the Article
+	article.Title = meta.Title
+	article.ShortDescription = meta.ShortDescription
+	article.CreateDate = meta.CreateDate
+	article.ModifiedDate = meta.ModifiedDate
+
+	// Parse article body to valid HTML (which is safe)
+	article.Body = parseArticleBodyToHtml(article_body_data)
+
+	return nil
+}
+
+func getArticleId(w http.ResponseWriter, r *http.Request) (string, error) {
 	m := validPath.FindStringSubmatch(r.URL.Path)
 	if m == nil {
 		http.NotFound(w, r)
 		return "", errors.New("Invalid Page Title")
 	}
-	return m[2], nil // The title is the second subexpression.
+	return m[2], nil // The id is the second subexpression.
 }
 
-func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+func renderArticleTemplate(w http.ResponseWriter, tmpl string, article *Article) {
+	err := article_templates.ExecuteTemplate(w, tmpl+".html", article)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func articleHandler(w http.ResponseWriter, r *http.Request) {
-	title, err := getTitle(w, r)
+	title, err := getArticleId(w, r)
 	if err != nil {
 		return
 	}
-	p, err := loadPage(title)
+	article, err := NewArticle(title)
 	if err != nil {
+		fmt.Println(err.Error())
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
-	renderTemplate(w, "article", p)
+	renderArticleTemplate(w, "article", article)
 }

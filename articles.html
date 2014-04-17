@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+{{/***********
+ Actual page
+************/}}
+</head>
+<body>
+{{range $index, $article := .Articles}}
+	<li><a href="article/{{$article.Id}}">{{$index}} : {{$article.Title}}</li>
+{{end}}
+</body>
+</html>
