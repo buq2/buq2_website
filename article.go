@@ -11,14 +11,15 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type PageMetaData struct {
 	Title        string
 	LongTitle    string
 	Description  string
-	CreateDate   string
-	ModifiedDate string
+	DateCreated  string
+	DateModified string
 	Icon         string
 }
 
@@ -28,10 +29,11 @@ type Article struct {
 	Title        string
 	LongTitle    string
 	Description  string
-	CreateDate   string
-	ModifiedDate string
+	DateCreated  time.Time
+	DateModified time.Time
 	Id           string
 	Icon         string
+	Link         string
 }
 
 var validArticle = regexp.MustCompile("^/(article)/([a-zA-Z0-9]+)$")
@@ -107,7 +109,11 @@ func NewArticle(id string) (*Article, error) {
 
 	article := new(Article)
 	err = parseRawTextArticleData(article_data, article)
+
+	// Other
 	article.Id = id
+	article.Scripts = articleScripts
+	article.Link = websiteAddress() + "/article/" + article.Id
 
 	return article, err
 }
@@ -182,7 +188,8 @@ func parseRawTextArticleData(article_data []byte, article *Article) error {
 
 	// Read metadata
 	meta := PageMetaData{}
-	if err := json.Unmarshal(article_meta_data, &meta); err != nil {
+	err := json.Unmarshal(article_meta_data, &meta)
+	if err != nil {
 		fmt.Println("Failed to parse article meta data. Returning empty meta data: " + err.Error())
 	}
 
@@ -190,15 +197,18 @@ func parseRawTextArticleData(article_data []byte, article *Article) error {
 	article.Title = meta.Title
 	article.Description = meta.Description
 	article.LongTitle = meta.LongTitle
-	article.CreateDate = meta.CreateDate
-	article.ModifiedDate = meta.ModifiedDate
+	article.DateCreated, err = time.Parse("2006-01-02 15:04", meta.DateCreated)
+	if err != nil {
+		fmt.Println("Failed to parse DateCreated: " + err.Error())
+	}
+	article.DateModified, err = time.Parse("2006-01-02 15:04", meta.DateModified)
+	if err != nil {
+		article.DateModified = article.DateCreated
+	}
 	article.Icon = meta.Icon
 
 	// Parse article body to valid HTML (which is safe)
 	article.Body = parseArticleBodyToHtml(article_body_data)
-
-	// Add scripts
-	article.Scripts = articleScripts
 
 	return nil
 }
@@ -207,7 +217,7 @@ func getArticleId(w http.ResponseWriter, r *http.Request) (string, error) {
 	m := validArticle.FindStringSubmatch(r.URL.Path)
 	if m == nil {
 		http.NotFound(w, r)
-		return "", errors.New("Invalid Page Title")
+		return "", errors.New("Invalid Article Id")
 	}
 	return m[2], nil // The id is the second subexpression.
 }
@@ -215,12 +225,12 @@ func getArticleId(w http.ResponseWriter, r *http.Request) (string, error) {
 func articleHandler(w http.ResponseWriter, r *http.Request) {
 	title, err := getArticleId(w, r)
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	article, err := NewArticle(title)
 	if err != nil {
-		fmt.Println(err.Error())
-		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	renderTemplate(w, "article", *article)
