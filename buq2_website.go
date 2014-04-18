@@ -2,9 +2,22 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"runtime"
 )
+
+var templates = template.Must(template.ParseFiles(
+	"templates/article.html",
+	"templates/articles.html",
+))
+
+func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+	err := templates.ExecuteTemplate(w, tmpl+".html", data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
