@@ -5,11 +5,24 @@ import (
 )
 
 type Articles struct {
-	Articles []*Article
+	ArticlesLeft  []*Article
+	ArticlesRight []*Article
+	Title         string
+	Scripts       string
 }
 
 func articlesHandler(w http.ResponseWriter, r *http.Request) {
 	articles_raw := GetAllArticles()
-	articles := Articles{articles_raw}
+	articles := Articles{}
+
+	// Every other goes to left column, every other to right column
+	for idx, article := range articles_raw {
+		if idx%2 == 0 {
+			articles.ArticlesLeft = append(articles.ArticlesLeft, article)
+		} else {
+			articles.ArticlesRight = append(articles.ArticlesRight, article)
+		}
+	}
+
 	renderTemplate(w, "articles", articles)
 }

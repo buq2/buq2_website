@@ -13,6 +13,27 @@ import (
 	"strings"
 )
 
+type PageMetaData struct {
+	Title        string
+	LongTitle    string
+	Description  string
+	CreateDate   string
+	ModifiedDate string
+	Icon         string
+}
+
+type Article struct {
+	Scripts      template.HTML
+	Body         template.HTML
+	Title        string
+	LongTitle    string
+	Description  string
+	CreateDate   string
+	ModifiedDate string
+	Id           string
+	Icon         string
+}
+
 var validArticle = regexp.MustCompile("^/(article)/([a-zA-Z0-9]+)$")
 
 var articleScripts = template.HTML(`
@@ -64,23 +85,6 @@ var articleScripts = template.HTML(`
     });
 </script>
 `)
-
-type PageMetaData struct {
-	Title            string
-	ShortDescription string
-	CreateDate       string
-	ModifiedDate     string
-}
-
-type Article struct {
-	Scripts          template.HTML
-	Body             template.HTML
-	Title            string
-	ShortDescription string
-	CreateDate       string
-	ModifiedDate     string
-	Id               string
-}
 
 func GetAllArticles() []*Article {
 	ids := getAllArticleIds()
@@ -179,14 +183,16 @@ func parseRawTextArticleData(article_data []byte, article *Article) error {
 	// Read metadata
 	meta := PageMetaData{}
 	if err := json.Unmarshal(article_meta_data, &meta); err != nil {
-		fmt.Println("Failed to parse article meta data. Returning empty meta data")
+		fmt.Println("Failed to parse article meta data. Returning empty meta data: " + err.Error())
 	}
 
 	// Put metadata into the Article
 	article.Title = meta.Title
-	article.ShortDescription = meta.ShortDescription
+	article.Description = meta.Description
+	article.LongTitle = meta.LongTitle
 	article.CreateDate = meta.CreateDate
 	article.ModifiedDate = meta.ModifiedDate
+	article.Icon = meta.Icon
 
 	// Parse article body to valid HTML (which is safe)
 	article.Body = parseArticleBodyToHtml(article_body_data)

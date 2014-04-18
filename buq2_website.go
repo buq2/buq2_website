@@ -10,6 +10,7 @@ import (
 var templates = template.Must(template.ParseFiles(
 	"templates/article.html",
 	"templates/articles.html",
+	"templates/articles_column.html",
 	"templates/header.html",
 	"templates/footer.html",
 ))
