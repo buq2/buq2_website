@@ -15,6 +15,56 @@ import (
 
 var validArticle = regexp.MustCompile("^/(article)/([a-zA-Z0-9]+)$")
 
+var articleScripts = template.HTML(`
+<!--***********
+ Mathjax
+************-->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({"HTML-CSS": {
+        preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }},
+        tex2jax: { inlineMath: [ ["$", "$"], ["\\\\(","\\\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+        TeX: {
+                equationNumbers: { autoNumber: "AMS" },
+                noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }
+            },
+        messageStyle: "none"
+        });
+</script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+<!--***********
+ Highlighting
+************-->
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.0/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.0/highlight.min.js"></script>
+<!--***********
+ jquery
+************-->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<!--***********
+ Image captions
+************-->
+<script>
+    function InitAutoImageCaption() {
+        // Every image referenced from a Markdown document
+        $("img").each(function() {
+            // Let's put a caption if there is not one
+            if($(this).attr("alt"))
+                $(this).wrap('<figure class="image"></figure>')
+                    .after('<figcaption>'+$(this).attr("alt")+'</figcaption>');
+        });
+    }
+</script>
+<!--***********
+ Initialization code
+************-->
+<script>
+    $(document).ready(function(){
+        InitAutoImageCaption();
+        hljs.initHighlightingOnLoad();
+    });
+</script>
+`)
+
 type PageMetaData struct {
 	Title            string
 	ShortDescription string
@@ -23,6 +73,7 @@ type PageMetaData struct {
 }
 
 type Article struct {
+	Scripts          template.HTML
 	Body             template.HTML
 	Title            string
 	ShortDescription string
@@ -139,6 +190,9 @@ func parseRawTextArticleData(article_data []byte, article *Article) error {
 
 	// Parse article body to valid HTML (which is safe)
 	article.Body = parseArticleBodyToHtml(article_body_data)
+
+	// Add scripts
+	article.Scripts = articleScripts
 
 	return nil
 }

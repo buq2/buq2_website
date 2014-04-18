@@ -10,6 +10,8 @@ import (
 var templates = template.Must(template.ParseFiles(
 	"templates/article.html",
 	"templates/articles.html",
+	"templates/header.html",
+	"templates/footer.html",
 ))
 
 func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
