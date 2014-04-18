@@ -48,6 +48,8 @@ func main() {
 	http.HandleFunc("/article/", articleHandler)
 	http.HandleFunc("/atom.xml", atomHandler)
 	http.HandleFunc("/rss", rssHandler)
+	http.HandleFunc("/login", authHandler)
+	http.HandleFunc("/oauth2callback", oauth2callbackHandler)
 	http.Handle("/static/", fileserverHandler())
 	http.ListenAndServe(":8080", nil)
 }
