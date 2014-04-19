@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"runtime"
@@ -42,6 +43,12 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 }
 
 func main() {
+	err := readAuthConfig()
+	if nil != err {
+		fmt.Println("Failed to load auth configurations: " + err.Error())
+		return
+	}
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	http.HandleFunc("/", articlesHandler)
