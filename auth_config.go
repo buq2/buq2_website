@@ -33,7 +33,7 @@ func getGoogleOauthClientIdAndSecret() (string, string) {
 }
 
 func readAuthConfig() error {
-	b, err := ioutil.ReadFile("config.json")
+	b, err := ioutil.ReadFile("auth_config.json")
 	if err != nil {
 		return err
 	}

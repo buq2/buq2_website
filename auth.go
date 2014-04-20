@@ -4,7 +4,6 @@ import (
 	"code.google.com/p/goauth2/oauth"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,6 +14,7 @@ import (
 // http://golangtutorials.blogspot.fi/2011/11/oauth2-3-legged-authorization-in-go-web.html
 // https://gist.github.com/border/3579615
 // http://code.google.com/p/goauth2/source/browse/oauth/example/oauthreq.go
+// https://github.com/kjk/web-blog/blob/master/go/handler_login.go
 
 type Email struct {
 	Value string
@@ -31,6 +31,13 @@ type SiteCookie struct {
 	UserId    string
 }
 
+func (cookie SiteCookie) IsAdmin() bool {
+	// Checking for zero length ids just in case there is configuration error
+	return cookie.UserEmail == config.AdminEmail &&
+		cookie.UserId == config.AdminId &&
+		len(cookie.UserId) > 0
+}
+
 var oauthCfg = &oauth.Config{
 	ClientId:     "",
 	ClientSecret: "",
@@ -40,38 +47,36 @@ var oauthCfg = &oauth.Config{
 	Scope:        "email",
 }
 
-//This is the URL that Google has defined so that an authenticated application may obtain the user's info in json format
+// This is the URL that Google has defined so that an authenticated application
+// may obtain the user's info in json format
 const profileInfoURL = "https://www.googleapis.com/plus/v1/people/me"
 
 var userInfoTemplate = template.Must(template.New("").Parse(`
-<html><body>
-{{.}}
-</body></html>
+<html>
+<head>
+<meta http-equiv="refresh" content="5;url=/">
+</head>
+<body>
+You have logged in as: {{.UserEmail}}
+{{if .IsAdmin}}
+    You are an admin
+{{end}}
+</body>
+</html>
 `))
-
-func authHandler(w http.ResponseWriter, r *http.Request) {
-	//Get the Google URL which shows the Authentication page to the user
-	oauthCfg.ClientId, oauthCfg.ClientSecret = getGoogleOauthClientIdAndSecret()
-	url := oauthCfg.AuthCodeURL("")
-
-	//redirect user to that page
-	http.Redirect(w, r, url, http.StatusFound)
-}
-
-func isAdmin(cookie *SiteCookie) bool {
-	return cookie.UserEmail == config.AdminEmail && cookie.UserId == config.AdminId
-}
 
 func getCookie(r *http.Request) *SiteCookie {
 	ret := new(SiteCookie)
 	if cookie, err := r.Cookie(cookieName); err == nil {
 		// detect a deleted cookie
 		if "deleted" == cookie.Value {
+			log.Printf("Cookie has been deleted")
 			return new(SiteCookie)
 		}
 		val := make(map[string]string)
 		if err = secureCookie.Decode(cookieName, cookie.Value, &val); err != nil {
 			// Ignore error
+			log.Printf("Could not decode cookie")
 			return new(SiteCookie)
 		}
 		var ok bool
@@ -87,14 +92,7 @@ func getCookie(r *http.Request) *SiteCookie {
 	return ret
 }
 
-func checkCredentials(w http.ResponseWriter, r *http.Request, info *AuthInformation) error {
-	if len(info.Emails) != 1 ||
-		info.Emails[0].Value != config.AdminEmail ||
-		info.Id != config.AdminId {
-
-		return errors.New("Not an admin")
-	}
-
+func createCookie(w http.ResponseWriter, info *AuthInformation) error {
 	// Set cookie values to be encoded
 	val := make(map[string]string)
 	val["UserEmail"] = info.Emails[0].Value
@@ -103,6 +101,7 @@ func checkCredentials(w http.ResponseWriter, r *http.Request, info *AuthInformat
 	// Encode the data
 	encoded, err := secureCookie.Encode(cookieName, val)
 	if nil != err {
+
 		return err
 	}
 
@@ -162,7 +161,33 @@ func oauth2callbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	checkCredentials(w, r, info)
+	err = createCookie(w, info)
+	if nil != err {
+		log.Print("Failed to create cookie")
+	}
 
-	userInfoTemplate.Execute(w, string(body))
+	userInfoTemplate.Execute(w, getCookie(r))
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the Google URL which shows the Authentication page to the user
+	oauthCfg.ClientId, oauthCfg.ClientSecret = getGoogleOauthClientIdAndSecret()
+	url := oauthCfg.AuthCodeURL("")
+
+	// Redirect user to that page
+	http.Redirect(w, r, url, http.StatusFound)
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	// Set value of the secure cookie to 'deleted' and redirect
+	cookie := &http.Cookie{
+		Name:    cookieName,
+		Value:   "deleted",
+		Expires: time.Now(),
+		Path:    "/",
+	}
+	http.SetCookie(w, cookie)
+
+	code_found := 302
+	http.Redirect(w, r, "/", code_found)
 }
