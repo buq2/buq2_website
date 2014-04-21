@@ -25,6 +25,7 @@ type PageMetaData struct {
 }
 
 type Article struct {
+	SiteGlobal
 	Scripts      template.HTML
 	Body         template.HTML
 	Title        string
@@ -112,6 +113,7 @@ func NewArticle(id string) (*Article, error) {
 	err = parseRawTextArticleData(article_data, article)
 
 	// Other
+	article.SiteGlobal = siteGlobal
 	article.Id = id
 	article.Scripts = articleScripts
 	article.Link = websiteAddress() + "/article/" + article.Id

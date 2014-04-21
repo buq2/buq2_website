@@ -5,6 +5,7 @@ import (
 )
 
 type Articles struct {
+	SiteGlobal
 	ArticlesLeft  []*Article
 	ArticlesRight []*Article
 	Title         string
@@ -14,6 +15,7 @@ type Articles struct {
 func articlesHandler(w http.ResponseWriter, r *http.Request) {
 	articles_raw := GetAllArticles()
 	articles := Articles{}
+	articles.SiteGlobal = siteGlobal
 
 	// Every other goes to left column, every other to right column
 	for idx, article := range articles_raw {
