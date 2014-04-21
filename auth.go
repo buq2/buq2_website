@@ -44,7 +44,12 @@ var oauthCfg = &oauth.Config{
 	AuthURL:      "https://accounts.google.com/o/oauth2/auth",
 	TokenURL:     "https://accounts.google.com/o/oauth2/token",
 	RedirectURL:  "http://127.0.0.1:8080/oauth2callback",
-	Scope:        "email",
+
+	// Scope 'openid' needs to be such that we get 'id' field
+	// Use of 'email' only works almost, as it seems that second request
+	// will always contain the 'id' field as well. By adding 'openid' we get
+	// the 'id' on the first call
+	Scope: "email openid",
 }
 
 // This is the URL that Google has defined so that an authenticated application
@@ -57,9 +62,10 @@ var userInfoTemplate = template.Must(template.New("").Parse(`
 <meta http-equiv="refresh" content="5;url=/">
 </head>
 <body>
-You have logged in as: {{.UserEmail}}
+You have logged in as: '{{.UserEmail}}'<br>
+With id: '{{.UserId}}'<br>
 {{if .IsAdmin}}
-    You are an admin
+    You are an admin<br>
 {{end}}
 </body>
 </html>
@@ -92,7 +98,7 @@ func getCookie(r *http.Request) *SiteCookie {
 	return ret
 }
 
-func createCookie(w http.ResponseWriter, info *AuthInformation) error {
+func createCookie(w http.ResponseWriter, info *AuthInformation) (*SiteCookie, error) {
 	// Set cookie values to be encoded
 	val := make(map[string]string)
 	val["UserEmail"] = info.Emails[0].Value
@@ -102,21 +108,26 @@ func createCookie(w http.ResponseWriter, info *AuthInformation) error {
 	encoded, err := secureCookie.Encode(cookieName, val)
 	if nil != err {
 
-		return err
+		return nil, err
 	}
 
 	// Create new cookie
 	expiresIndays := 1
-	cookie := &http.Cookie{
+	http_cookie := &http.Cookie{
 		Name:    cookieName,
 		Value:   encoded,
 		Path:    "/",
 		Expires: time.Now().AddDate(0, 0, expiresIndays),
 	}
 
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, http_cookie)
 
-	return nil
+	// Create returned SiteCookie
+	cookie := new(SiteCookie)
+	cookie.UserEmail = val["UserEmail"]
+	cookie.UserId = val["UserId"]
+
+	return cookie, nil
 }
 
 // Function that handles the callback from the Google server
@@ -124,26 +135,23 @@ func oauth2callbackHandler(w http.ResponseWriter, r *http.Request) {
 	//Get the code from the response
 	code := r.FormValue("code")
 
+	// Create transport from config
 	t := &oauth.Transport{Config: oauthCfg}
 
 	// Exchange the received code for a token
-	tok, _ := t.Exchange(code)
-
-	{
-		tokenCache := oauth.CacheFile("./request.token")
-
-		err := tokenCache.PutToken(tok)
-		if err != nil {
-			log.Print("Cache write:", err)
-		}
-		log.Printf("Token is cached in %v\n", tokenCache)
+	// Note that we do not store the actual token
+	_, err := t.Exchange(code)
+	if nil != err {
+		log.Printf("Failed to exchange token")
+		return
 	}
 
+	// Transport (t) has now valid token
 	t.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
 	}
 
-	// Make the request.
+	// Make the request to data
 	req, err := t.Client().Get(profileInfoURL)
 	if err != nil {
 		log.Print("Request Error:", err)
@@ -151,9 +159,11 @@ func oauth2callbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer req.Body.Close()
 
+	// Get the requested data
 	body, _ := ioutil.ReadAll(req.Body)
+	log.Print(string(body))
 
-	// Unmarsharl information from the request (emails + id)
+	// Unmarshal information from the request (emails + id)
 	info := &AuthInformation{}
 	err = json.Unmarshal(body, &info)
 	if nil != err {
@@ -161,12 +171,14 @@ func oauth2callbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = createCookie(w, info)
+	// Create login cookie for the users
+	cookie, err := createCookie(w, info)
 	if nil != err {
 		log.Print("Failed to create cookie")
 	}
 
-	userInfoTemplate.Execute(w, getCookie(r))
+	// Show user the login information
+	userInfoTemplate.Execute(w, cookie)
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
