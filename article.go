@@ -7,6 +7,7 @@ import (
 	"github.com/russross/blackfriday"
 	"html/template"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"path"
 	"regexp"
@@ -213,24 +214,26 @@ func parseRawTextArticleData(article_data []byte, article *Article) error {
 	return nil
 }
 
-func getArticleId(w http.ResponseWriter, r *http.Request) (string, error) {
+func getArticleId(r *http.Request) (string, error) {
 	m := validArticle.FindStringSubmatch(r.URL.Path)
 	if m == nil {
-		http.NotFound(w, r)
-		return "", errors.New("Invalid Article Id")
+		return "", errors.New("Invalid Article Id with request: " + r.URL.Path)
 	}
+
 	return m[2], nil // The id is the second subexpression.
 }
 
 func articleHandler(w http.ResponseWriter, r *http.Request) {
-	title, err := getArticleId(w, r)
+	id, err := getArticleId(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.NotFound(w, r)
+		log.Print("Could not parse article Id from request:" + err.Error())
 		return
 	}
-	article, err := NewArticle(title)
+	article, err := NewArticle(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.NotFound(w, r)
+		log.Print("Unknown article Id:" + id)
 		return
 	}
 	renderTemplate(w, "article", *article)

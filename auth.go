@@ -200,6 +200,5 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, cookie)
 
-	code_found := 302
-	http.Redirect(w, r, "/", code_found)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
