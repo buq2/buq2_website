@@ -25,8 +25,16 @@ footer {
   padding: 1em;
 }
 
-/* Used in artcile.html */
+/* Used in article.html */
 #article {
+  overflow: auto;
+  background-color: #f5f5f5;
+  color: #222;
+  padding: 1em;
+}
+
+/* Used in about.html */
+#about {
   overflow: auto;
   background-color: #f5f5f5;
   color: #222;
@@ -46,6 +54,10 @@ a:hover {
 }
 
 h1 a {
+  text-decoration: none;
+}
+
+header a {
   text-decoration: none;
 }
 

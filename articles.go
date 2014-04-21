@@ -9,7 +9,6 @@ type Articles struct {
 	ArticlesLeft  []*Article
 	ArticlesRight []*Article
 	Title         string
-	Scripts       string
 }
 
 func articlesHandler(w http.ResponseWriter, r *http.Request) {

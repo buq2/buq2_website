@@ -10,6 +10,7 @@ import (
 )
 
 var templates = template.Must(template.ParseFiles(
+	"templates/about.html",
 	"templates/article.html",
 	"templates/articles.html",
 	"templates/articles_column.html",
@@ -21,6 +22,12 @@ var templates = template.Must(template.ParseFiles(
 type SiteGlobal struct {
 	UseGoogleAnalytics  bool
 	GoogleAnalyticsCode string
+	Scripts             template.HTML
+	TitleBase           string
+	Title               string
+	Name                string
+	Address             string
+	Email               string
 }
 
 var (
@@ -32,6 +39,13 @@ func readGlobalConfig() error {
 	if err != nil {
 		return err
 	}
+
+	// Reasonable refault values
+	siteGlobal.TitleBase = "Still Processing"
+	siteGlobal.Email = "spam@buq2.com"
+	siteGlobal.Name = "Matti Jukola"
+	siteGlobal.Address = "http://buq2.com"
+
 	err = json.Unmarshal(b, &siteGlobal)
 	if err != nil {
 		return err
@@ -40,11 +54,11 @@ func readGlobalConfig() error {
 }
 
 func websiteName() string {
-	return "Still Processing"
+	return siteGlobal.TitleBase
 }
 
 func websiteAddress() string {
-	return "http://buq2.com"
+	return siteGlobal.Address
 }
 
 func websiteDescription() string {
@@ -52,11 +66,11 @@ func websiteDescription() string {
 }
 
 func websiteAuthor() string {
-	return "Matti Jukola"
+	return siteGlobal.Name
 }
 
 func websiteEmail() string {
-	return "spam@buq2.com"
+	return siteGlobal.Email
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
@@ -82,8 +96,9 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	http.HandleFunc("/", articlesHandler)
-	http.HandleFunc("/articles", articlesHandler)
+	http.HandleFunc("/articles/", articlesHandler)
 	http.HandleFunc("/article/", articleHandler)
+	http.HandleFunc("/about/", aboutHandler)
 	http.HandleFunc("/atom.xml", atomHandler)
 	http.HandleFunc("/rss", rssHandler)
 	http.HandleFunc("/login", loginHandler)

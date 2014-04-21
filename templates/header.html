@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Still processing - {{.Title}}</title>
+    <title>{{.TitleBase}} {{if .Title}} - {{.Title}} {{end}}</title>
     <meta name="description" content="Image processing, algorithms and code">
     <meta name="keywords" content="image processing">
     <link rel="stylesheet" href="/static/style.css">
@@ -14,8 +14,8 @@
 
 <body>
     <header>
-        <h1><a href="/">Still processing</a></h1>
-        <h2>Matti Jukola's blog about image processing</h2>
+        <h1><a href="/">{{.TitleBase}}</a></h1>
+        <h2><a href="/about/">{{.Name}}</a>'s blog about image processing</h2>
     </header>
 
 {{/* Actual data goes here */}}

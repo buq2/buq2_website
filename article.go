@@ -90,6 +90,11 @@ var articleScripts = template.HTML(`
 </script>
 `)
 
+var (
+	articleFolder    = "./articles/"
+	articleExtension = ".md"
+)
+
 func GetAllArticles() []*Article {
 	ids := getAllArticleIds()
 	articles := make([]*Article, len(ids))
@@ -103,7 +108,7 @@ func GetAllArticles() []*Article {
 
 func NewArticle(id string) (*Article, error) {
 	// Try to find the data to the article with certain id
-	filename := id + ".txt"
+	filename := articleFolder + "/" + id + articleExtension
 	article_data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -122,10 +127,9 @@ func NewArticle(id string) (*Article, error) {
 }
 
 func getAllArticleIds() []string {
-	folder := "./"
 	ids := []string{}
 
-	files, err := ioutil.ReadDir(folder)
+	files, err := ioutil.ReadDir(articleFolder)
 	if err != nil {
 		return ids
 	}
@@ -133,7 +137,7 @@ func getAllArticleIds() []string {
 	for _, file := range files {
 		filename := file.Name()
 		ext := path.Ext(filename)
-		if ext == ".txt" {
+		if ext == articleExtension {
 			name := filename[0 : len(filename)-len(ext)]
 			ids = append(ids, name)
 		}
