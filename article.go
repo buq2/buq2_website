@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -38,7 +39,7 @@ type Article struct {
 	Link         string
 }
 
-var validArticle = regexp.MustCompile("^/(article)/([a-zA-Z0-9]+)$")
+var validArticle = regexp.MustCompile("^/(article)/([a-zA-Z0-9_]+)$")
 
 var articleScripts = template.HTML(`
 <!--***********
@@ -146,6 +147,27 @@ func getAllArticleIds() []string {
 	return ids
 }
 
+func escapeLatexInner(input []byte) []byte {
+
+	// Replace all "_"" with escaped version ("\_")
+	tmp := bytes.Replace(input, []byte("_"), []byte("\\_"), -1)
+	// Replace "\\" (matrix line change) with escaped version
+	// ("\\\\")
+	tmp = bytes.Replace(tmp, []byte("\\\\"), []byte("\\\\\\\\"), -1)
+	// Remove white space around "=" (as other wise it might be taken as
+	// a start of a header)
+	re := regexp.MustCompile("[\\s]*=[\\s]*")
+	tmp = re.ReplaceAll(tmp, []byte("="))
+	return tmp
+}
+
+func escapeLatex(input []byte) []byte {
+	// (?s) sets dot to match new lines
+	re := regexp.MustCompile("(?s)\\$\\$(.*?)\\$\\$")
+	output := re.ReplaceAllFunc(input, escapeLatexInner)
+	return output
+}
+
 func parseArticleBodyToHtml(article_body_data []byte) template.HTML {
 	// Convert markdown to thml
 	htmlFlags := 0
@@ -168,8 +190,13 @@ func parseArticleBodyToHtml(article_body_data []byte) template.HTML {
 	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
 	extensions |= blackfriday.EXTENSION_HEADER_IDS
+	// Footnotes allow use of "[^1]" style footnotes
+	extensions |= blackfriday.EXTENSION_FOOTNOTES
 
-	body_markdown := blackfriday.Markdown(article_body_data, renderer, extensions)
+	// Escape latex blocks
+	article_body_data_escaped := escapeLatex(article_body_data)
+
+	body_markdown := blackfriday.Markdown(article_body_data_escaped, renderer, extensions)
 
 	return template.HTML(body_markdown)
 }
