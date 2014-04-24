@@ -107,6 +107,14 @@ footer a {
   margin: 0;
 }
 
+.article-abr h1 {
+    text-align: left;
+}
+
+.article-abr h2 {
+    text-align: left;
+}
+
 .article-abr img {
   max-width: 25%;
   float: left;
@@ -142,7 +150,21 @@ footer a {
     margin-right: 3%;
   }
 
+  .article-abr {
+    min-height: 300px;
+  }
+
   .article-abr img {
     max-width: 35%;
   }
+
+  .article-abr h1 {
+    font-size: 1.5em;
+    text-align: left;
+  }
+
+  .article-abr h2 {
+    font-size: 1em;
+    text-align: left;
+   }
 }
