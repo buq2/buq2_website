@@ -29,6 +29,8 @@ type SiteGlobal struct {
 	Name                string
 	Address             string
 	Email               string
+	// Keywords will be added to the header
+	Keywords []string
 }
 
 var (

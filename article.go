@@ -186,6 +186,7 @@ func NewArticle(id string) (*Article, error) {
 	article.Id = id
 	article.Scripts = articleScripts
 	article.Link = websiteAddress() + "/article/" + article.Id
+	article.Keywords = article.Tags
 
 	return article, err
 }
