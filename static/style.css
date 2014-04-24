@@ -41,6 +41,26 @@ footer {
   padding: 1em;
 }
 
+.centered {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+figure.centered {
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.right {
+    float:right;
+}
+
+.left {
+    float:left;
+}
+
 /*******
  * Text colors
  *******/
@@ -76,6 +96,7 @@ footer a {
 .content {
   margin: 0 auto;
   max-width: 1000px;
+  text-align:justify;
 }
 
 .article-abr {

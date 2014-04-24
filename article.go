@@ -25,6 +25,11 @@ type PageMetaData struct {
 	DateModified string
 	Icon         string
 	Tags         []string
+
+	// Options which are not added to the final Article
+	// These only change how the article is parsed
+	// or converted to HTML
+	CreateToc bool
 }
 
 type Article struct {
@@ -77,9 +82,18 @@ var articleScripts = template.HTML(`
         // Every image referenced from a Markdown document
         $("img").each(function() {
             // Let's put a caption if there is not one
-            if($(this).attr("alt"))
-                $(this).wrap('<figure class="image"></figure>')
-                    .after('<figcaption>'+$(this).attr("alt")+'</figcaption>');
+            if($(this).attr("alt")) {
+                if($(this).attr("class")) {
+                    // Img has class, use this as figures class. Remove
+                    // class from Img
+                    $(this).wrap('<figure class="' + $(this).attr("class") + '"></figure>')
+                        .after('<figcaption>'+$(this).attr("alt")+'</figcaption>');
+                    $(this).removeAttr('class');
+                } else {
+                    $(this).wrap('<figure></figure>')
+                        .after('<figcaption>'+$(this).attr("alt")+'</figcaption>');
+                }
+            }
         });
     }
 </script>
@@ -232,13 +246,17 @@ func escapeLatex(input []byte) []byte {
 	return output
 }
 
-func parseArticleBodyToHtml(article_body_data []byte) template.HTML {
+func parseArticleBodyToHtml(article_body_data []byte, meta PageMetaData) template.HTML {
 	// Convert markdown to thml
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_XHTML
 	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
 	htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
 	htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
+	if meta.CreateToc {
+		// Only create TOC if it is specifically requested
+		htmlFlags |= blackfriday.HTML_TOC
+	}
 	// Can't use HTML_SANITIZE_OUTPUT as it will remove custom
 	// classes from code blocks, etc
 	//htmlFlags |= blackfriday.HTML_SANITIZE_OUTPUT
@@ -307,7 +325,7 @@ func parseRawTextArticleData(article_data []byte, article *Article) error {
 	article.Tags = meta.Tags
 
 	// Parse article body to valid HTML (which is safe)
-	article.Body = parseArticleBodyToHtml(article_body_data)
+	article.Body = parseArticleBodyToHtml(article_body_data, meta)
 
 	return nil
 }
