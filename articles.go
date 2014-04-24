@@ -8,7 +8,6 @@ type Articles struct {
 	SiteGlobal
 	ArticlesLeft  []*Article
 	ArticlesRight []*Article
-	Title         string
 }
 
 func articlesHandler(w http.ResponseWriter, r *http.Request) {

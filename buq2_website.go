@@ -17,6 +17,7 @@ var templates = template.Must(template.ParseFiles(
 	"templates/header.html",
 	"templates/footer.html",
 	"templates/analytics.html",
+	"templates/tag.html",
 ))
 
 type SiteGlobal struct {
@@ -101,6 +102,7 @@ func main() {
 	http.HandleFunc("/about/", aboutHandler)
 	http.HandleFunc("/atom.xml", atomHandler)
 	http.HandleFunc("/rss", rssHandler)
+	http.HandleFunc("/tag/", tagHandler)
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/logout", logoutHandler)
 	http.HandleFunc("/oauth2callback", oauth2callbackHandler)

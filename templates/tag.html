@@ -1,0 +1,12 @@
+{{template "header.html" .}}
+<div id="articles">
+    <div class="content">
+        <h1>Articles containing tag {{.Tag}}</h1>
+
+        {{/* Create left and right column of the article grid */}}
+        {{template "articles_column.html" .Articles.ArticlesLeft}}
+        {{template "articles_column.html" .Articles.ArticlesRight}}
+        
+    </div> <!--content-->
+</div> <!--articles-->
+{{template "footer.html" .}}

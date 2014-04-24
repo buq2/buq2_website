@@ -5,4 +5,14 @@
         {{.Body}}
     </div> <!--content-->
 </div> <!--article-->
+{{if .Tags}}
+<div id="tags">
+    <div class="content">
+        <h3>Tags</h3>
+        {{range $tag := .Tags}}
+            <a href="/tag/{{$tag}}">{{$tag}}</a>
+        {{end}}
+    </div>
+</div> <!--tags-->
+{{end}}
 {{template "footer.html" .}}

@@ -65,6 +65,10 @@ footer a {
   text-decoration: none;
 }
 
+#tags a {
+  text-decoration: none;
+}
+
 /*******
  * Content related
  *******/

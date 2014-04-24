@@ -23,6 +23,7 @@ type PageMetaData struct {
 	DateCreated  string
 	DateModified string
 	Icon         string
+	Tags         []string
 }
 
 type Article struct {
@@ -37,6 +38,7 @@ type Article struct {
 	Id           string
 	Icon         string
 	Link         string
+	Tags         []string
 }
 
 var validArticle = regexp.MustCompile("^/(article)/([a-zA-Z0-9_]+)$")
@@ -102,6 +104,44 @@ func GetAllArticles() []*Article {
 
 	for idx, id := range ids {
 		articles[idx], _ = NewArticle(id)
+	}
+
+	return articles
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+func GetArticlesByTag(tag string) ([]*Article, error) {
+	articles_all := GetAllArticles()
+
+	articles := []*Article{}
+	for _, article := range articles_all {
+		if stringInSlice(tag, article.Tags) {
+			articles = append(articles, article)
+		}
+	}
+
+	return articles, nil
+}
+
+func SplitRawArticlesIntoColumns(articles_raw []*Article) Articles {
+	articles := Articles{}
+	articles.SiteGlobal = siteGlobal
+
+	// Every other goes to left column, every other to right column
+	for idx, article := range articles_raw {
+		if idx%2 == 0 {
+			articles.ArticlesLeft = append(articles.ArticlesLeft, article)
+		} else {
+			articles.ArticlesRight = append(articles.ArticlesRight, article)
+		}
 	}
 
 	return articles
@@ -240,6 +280,7 @@ func parseRawTextArticleData(article_data []byte, article *Article) error {
 		article.DateModified = article.DateCreated
 	}
 	article.Icon = meta.Icon
+	article.Tags = meta.Tags
 
 	// Parse article body to valid HTML (which is safe)
 	article.Body = parseArticleBodyToHtml(article_body_data)
