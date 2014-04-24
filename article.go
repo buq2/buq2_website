@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 )
@@ -98,6 +99,24 @@ var (
 	articleExtension = ".md"
 )
 
+// Helper type for sorting
+type ByCreationDateNewestFirst []*Article
+
+// Helper funcition for sorting
+func (this ByCreationDateNewestFirst) Len() int {
+	return len(this)
+}
+
+// Helper funcition for sorting
+func (this ByCreationDateNewestFirst) Less(i, j int) bool {
+	return this[i].DateCreated.After(this[j].DateCreated)
+}
+
+// Helper funcition for sorting
+func (this ByCreationDateNewestFirst) Swap(i, j int) {
+	this[i], this[j] = this[j], this[i]
+}
+
 func GetAllArticles() []*Article {
 	ids := getAllArticleIds()
 	articles := make([]*Article, len(ids))
@@ -105,6 +124,8 @@ func GetAllArticles() []*Article {
 	for idx, id := range ids {
 		articles[idx], _ = NewArticle(id)
 	}
+
+	sort.Sort(ByCreationDateNewestFirst(articles))
 
 	return articles
 }
@@ -127,6 +148,8 @@ func GetArticlesByTag(tag string) ([]*Article, error) {
 			articles = append(articles, article)
 		}
 	}
+
+	sort.Sort(ByCreationDateNewestFirst(articles))
 
 	return articles, nil
 }
