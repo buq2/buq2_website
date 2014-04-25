@@ -32,7 +32,7 @@ func GetComments(id string) (*[]Comment, error) {
 	comments := new(Comments)
 	err = json.Unmarshal(comment_data, &(comments.Comments))
 	if err != nil {
-		log.Print("Failed to parse article meta data. Returning empty meta data: " + err.Error())
+		log.Print("Failed to parse comment data. Returning empty comments: " + err.Error())
 	}
 
 	return &comments.Comments, err
