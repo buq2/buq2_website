@@ -34,7 +34,6 @@ type PageMetaData struct {
 
 type Article struct {
 	SiteGlobal
-	Scripts      template.HTML
 	Body         template.HTML
 	Title        string
 	LongTitle    string
