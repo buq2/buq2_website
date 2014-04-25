@@ -23,7 +23,7 @@ func getFeed() *feeds.Feed {
 			Link:        &feeds.Link{Href: article.Link},
 			Description: article.Description,
 			Author:      feed.Author,
-			Created:     article.DateCreated,
+			Created:     article.DateCreated.Time,
 		}
 		feed.Add(item)
 	}

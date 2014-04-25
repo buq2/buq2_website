@@ -14,36 +14,28 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"time"
 )
-
-type PageMetaData struct {
-	Title        string
-	LongTitle    string
-	Description  string
-	DateCreated  string
-	DateModified string
-	Icon         string
-	Tags         []string
-
-	// Options which are not added to the final Article
-	// These only change how the article is parsed
-	// or converted to HTML
-	CreateToc bool
-}
 
 type Article struct {
 	SiteGlobal
+
+	// Following are not from the file
+	Id   string
+	Link string
+
+	// Following are parsed from the files
 	Body         template.HTML
 	Title        string
 	LongTitle    string
 	Description  string
-	DateCreated  time.Time
-	DateModified time.Time
-	Id           string
+	DateCreated  ParsableTime
+	DateModified ParsableTime
 	Icon         string
-	Link         string
 	Tags         []string
+
+	// Options which read from the file, and affect how the data is processed
+	// but should not be displayed on the final HTML
+	CreateToc bool
 }
 
 var validArticle = regexp.MustCompile("^/(article)/([a-zA-Z0-9_]+)$")
@@ -122,7 +114,7 @@ func (this ByCreationDateNewestFirst) Len() int {
 
 // Helper funcition for sorting
 func (this ByCreationDateNewestFirst) Less(i, j int) bool {
-	return this[i].DateCreated.After(this[j].DateCreated)
+	return this[i].DateCreated.After(this[j].DateCreated.Time)
 }
 
 // Helper funcition for sorting
@@ -245,14 +237,14 @@ func escapeLatex(input []byte) []byte {
 	return output
 }
 
-func parseArticleBodyToHtml(article_body_data []byte, meta PageMetaData) template.HTML {
+func parseArticleBodyToHtml(article_body_data []byte, article Article) template.HTML {
 	// Convert markdown to thml
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_XHTML
 	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
 	htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
 	htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
-	if meta.CreateToc {
+	if article.CreateToc {
 		// Only create TOC if it is specifically requested
 		htmlFlags |= blackfriday.HTML_TOC
 	}
@@ -302,29 +294,13 @@ func parseRawTextArticleData(article_data []byte, article *Article) error {
 	}
 
 	// Read metadata
-	meta := PageMetaData{}
-	err := json.Unmarshal(article_meta_data, &meta)
+	err := json.Unmarshal(article_meta_data, article)
 	if err != nil {
 		fmt.Println("Failed to parse article meta data. Returning empty meta data: " + err.Error())
 	}
 
-	// Put metadata into the Article
-	article.Title = meta.Title
-	article.Description = meta.Description
-	article.LongTitle = meta.LongTitle
-	article.DateCreated, err = time.Parse("2006-01-02 15:04", meta.DateCreated)
-	if err != nil {
-		fmt.Println("Failed to parse DateCreated: " + err.Error())
-	}
-	article.DateModified, err = time.Parse("2006-01-02 15:04", meta.DateModified)
-	if err != nil {
-		article.DateModified = article.DateCreated
-	}
-	article.Icon = meta.Icon
-	article.Tags = meta.Tags
-
 	// Parse article body to valid HTML (which is safe)
-	article.Body = parseArticleBodyToHtml(article_body_data, meta)
+	article.Body = parseArticleBodyToHtml(article_body_data, *article)
 
 	return nil
 }
