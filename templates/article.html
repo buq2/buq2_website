@@ -15,4 +15,12 @@
     </div>
 </div> <!--tags-->
 {{end}}
+{{if .Comments}}
+<div id="comments">
+	<h3>Comments</h3>
+	{{range $comment := .Comments}}
+		<p>{{$comment.CommentBody}}</p>
+	{{end}}
+</div> <!--comments-->
+{{end}}
 {{template "footer.html" .}}

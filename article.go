@@ -32,6 +32,7 @@ type Article struct {
 	DateModified ParsableTime
 	Icon         string
 	Tags         []string
+	Comments     *[]Comment
 
 	// Options which read from the file, and affect how the data is processed
 	// but should not be displayed on the final HTML
@@ -99,7 +100,7 @@ var articleScripts = template.HTML(`
 </script>
 `)
 
-var (
+const (
 	articleFolder    = "./articles/"
 	articleExtension = ".md"
 )
@@ -192,6 +193,7 @@ func NewArticle(id string) (*Article, error) {
 	article.Scripts = articleScripts
 	article.Link = websiteAddress() + "/article/" + article.Id
 	article.Keywords = article.Tags
+	article.Comments, _ = GetComments(id)
 
 	return article, err
 }
