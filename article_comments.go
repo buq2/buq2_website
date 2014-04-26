@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"sync"
 )
 
 type Comment struct {
@@ -21,9 +22,17 @@ const (
 	commentExtension = ".txt"
 )
 
+var (
+	mutexCommentWriters sync.Mutex
+)
+
+func GetCommentFilename(id string) string {
+	return commentFolder + "/" + id + commentExtension
+}
+
 func GetComments(id string) (*[]Comment, error) {
 	// Try to find the data to the comments with certain id
-	filename := commentFolder + "/" + id + commentExtension
+	filename := GetCommentFilename(id)
 	comment_data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -36,4 +45,30 @@ func GetComments(id string) (*[]Comment, error) {
 	}
 
 	return &comments.Comments, err
+}
+
+func AddComment(id string, comment Comment) error {
+	// Adding comment to a file needs a lock
+	mutexCommentWriters.Lock()
+	defer mutexCommentWriters.Unlock()
+
+	// Get old comments
+	comments, err := GetComments(id)
+	if err != nil {
+		return err
+	}
+
+	// Add new
+	commentsAppended := append(*comments, comment)
+
+	// Write to a file
+	commentsAll := Comments{commentsAppended}
+	bytes, err := json.Marshal(commentsAll)
+	if nil != err {
+		return err
+	}
+	filename := GetCommentFilename(id)
+	err = ioutil.WriteFile(filename, bytes, 0644)
+
+	return err
 }
