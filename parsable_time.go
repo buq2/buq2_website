@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"log"
 	"strings"
 	"time"
 )
@@ -23,6 +24,7 @@ func (new_time *ParsableTime) UnmarshalJSON(data []byte) error {
 	}
 	parsed, err := time.Parse(timeFormat, strs[1])
 	if nil != err {
+		log.Print("ParsableTime failed to parse string: " + strs[1])
 		return err
 	}
 	parsed_time := ParsableTime{parsed}
@@ -32,6 +34,6 @@ func (new_time *ParsableTime) UnmarshalJSON(data []byte) error {
 }
 
 func (new_time ParsableTime) MarshalJSON() ([]byte, error) {
-	bytes := []byte(new_time.Format(timeFormat))
+	bytes := []byte(`"` + new_time.Format(timeFormat) + `"`)
 	return bytes, nil
 }
