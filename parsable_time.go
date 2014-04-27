@@ -22,18 +22,22 @@ func (new_time *ParsableTime) UnmarshalJSON(data []byte) error {
 	if len(strs) != 3 {
 		return errors.New("Date must be in double quotes")
 	}
+
 	parsed, err := time.Parse(timeFormat, strs[1])
 	if nil != err {
 		log.Print("ParsableTime failed to parse string: " + strs[1])
 		return err
 	}
-	parsed_time := ParsableTime{parsed}
-	new_time = &parsed_time
+	*new_time = ParsableTime{parsed}
 
 	return nil
 }
 
-func (new_time ParsableTime) MarshalJSON() ([]byte, error) {
-	bytes := []byte(`"` + new_time.Format(timeFormat) + `"`)
+func (t ParsableTime) MarshalJSON() ([]byte, error) {
+	bytes := []byte(`"` + t.Format(timeFormat) + `"`)
 	return bytes, nil
+}
+
+func (t ParsableTime) AsString() string {
+	return t.Format(timeFormat)
 }
