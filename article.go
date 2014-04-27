@@ -34,6 +34,10 @@ type Article struct {
 	Tags         []string
 	Comments     *[]Comment
 
+	// If user tries to add comment, this will be
+	// filled with data
+	NewComment NewComment
+
 	// Options which read from the file, and affect how the data is processed
 	// but should not be displayed on the final HTML
 	CreateToc bool
@@ -96,7 +100,23 @@ var articleScripts = template.HTML(`
     $(document).ready(function(){
         InitAutoImageCaption();
         hljs.initHighlightingOnLoad();
+		showRecaptcha();
     });
+</script>
+<!--***********
+ Recaptcha
+************-->
+<script type="text/javascript" src="http://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+<script>
+function showRecaptcha() {
+	Recaptcha.create("6LdHivISAAAAAFJNxz6TBLzsNYYI7Cl9a3yp6QeW",
+    "captchadiv",
+    {
+      theme: "red",
+      callback: Recaptcha.focus_response_field
+    }
+  );
+}
 </script>
 `)
 
@@ -329,5 +349,8 @@ func articleHandler(w http.ResponseWriter, r *http.Request) {
 		log.Print("Unknown article Id:" + id)
 		return
 	}
+
+	article, err = CheckNewComment(r, article)
+
 	renderTemplate(w, "article", *article)
 }

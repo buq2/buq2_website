@@ -1,0 +1,10 @@
+{{if .Tags}}
+<div id="tags">
+    <div class="content">
+        <h2>Tags</h2>
+        {{range $tag := .Tags}}
+            <a href="/tag/{{$tag}}">{{$tag}}</a>
+        {{end}}
+    </div>
+</div> <!--tags-->
+{{end}}

@@ -1,0 +1,12 @@
+{{if .Comments}}
+<div id="comments">
+    <div class="content">
+    <h2>Comments</h2>
+    {{range $comment := .Comments}}
+        <div id="comment">
+            <p>{{$comment.CommentBody}}</p>
+        </div> <!--comment-->
+    {{end}}
+    </div> <!--content-->
+</div> <!--comments-->
+{{end}}

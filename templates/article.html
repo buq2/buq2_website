@@ -5,38 +5,9 @@
         {{.Body}}
     </div> <!--content-->
 </div> <!--article-->
-{{if .Tags}}
 <div class="lint">
-    <div id="tags">
-        <div class="content">
-            <h2>Tags</h2>
-            {{range $tag := .Tags}}
-                <a href="/tag/{{$tag}}">{{$tag}}</a>
-            {{end}}
-        </div>
-    </div> <!--tags-->
-    {{end}}
-    {{if .Comments}}
-    <div id="comments">
-        <div class="content">
-        <h2>Comments</h2>
-        {{range $comment := .Comments}}
-            <div id="comment">
-                <p>{{$comment.CommentBody}}</p>
-            </div> <!--comment-->
-        {{end}}
-        </div> <!--content-->
-    </div> <!--comments-->
-    {{end}}
-    <div id="addcomment">
-        <div class="content">
-            <h2>Add comment:</h2>
-            <form name="comment" action="/add_comment/" method="POST">
-                Name/Nick: <input type="text" name="user">
-                Comment: <textarea name="comment" rows=6 cols=60></textarea>
-                <input type=submit value="Add comment">
-            </form>
-        </div> <!--addcomment-->
-    </div> <!--content-->
+    {{template "article_tags.html" .}}
+    {{template "article_comments.html" .}}
+    {{template "article_add_comment.html" .}}
 </div> <!--lint-->
 {{template "footer.html" .}}

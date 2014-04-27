@@ -18,11 +18,16 @@ var templates = template.Must(template.ParseFiles(
 	"templates/footer.html",
 	"templates/analytics.html",
 	"templates/tag.html",
+	"templates/article_add_comment.html",
+	"templates/article_comments.html",
+	"templates/article_tags.html",
 ))
 
 type SiteGlobal struct {
 	UseGoogleAnalytics  bool
 	GoogleAnalyticsCode string
+	RecaptchaPublicKey  string
+	RecaptchaPrivateKey string
 	Scripts             template.HTML
 	TitleBase           string
 	Title               string

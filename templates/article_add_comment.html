@@ -1,0 +1,17 @@
+<div id="addcomment">
+    <div class="content">
+        <h2>Add comment:</h2>
+        <form name="comment" action="" method="POST">
+            Name/Nick: <input type="text" name="user" value = "{{.NewComment.Name}}">
+            Comment: <textarea name="comment" rows=6 cols=60>{{.NewComment.CommentBody}}</textarea>
+            <div id="captchadiv"></div>
+            {{if and (.NewComment.TriedToComment) (not .NewComment.RecaptchaOk)}}
+                Captcha failed
+            {{end}}
+            {{if and (.NewComment.TriedToComment) (.NewComment.RecaptchaOk)}}
+                Comment added
+            {{end}}
+            <input type="submit" value="Add comment">
+        </form>
+    </div> <!--addcomment-->
+</div> <!--content-->
