@@ -59,12 +59,12 @@ form {
     color: #09D;
 }
 
-input    {
+input.comment {
     font-style: normal;
     display:block;
 }
 
-textarea {
+textarea.comment {
     font-style: normal;
     display:block;
 }

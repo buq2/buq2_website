@@ -112,8 +112,7 @@ function showRecaptcha() {
 	Recaptcha.create("6LdHivISAAAAAFJNxz6TBLzsNYYI7Cl9a3yp6QeW",
     "captchadiv",
     {
-      theme: "red",
-      callback: Recaptcha.focus_response_field
+      theme: "red"
     }
   );
 }
