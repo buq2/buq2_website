@@ -1,16 +1,20 @@
-{{if .Comments}}
+{{$num_comments := len .Comments}}
+{{if gt $num_comments 0}}
 <div id="comments">
     <div class="content">
-    <h2>Comments ({{len .Comments}})</h2>
-    {{range $comment := .Comments}}
-        <div id="comment">
-            <div id="comment-header">
-                Poster: {{$comment.Name}} <br>
-                Date: {{$comment.TimeStamp.AsString}}
-            </div>
-            <p>{{$comment.CommentBody}}</p>
-        </div> <!--comment-->
-    {{end}}
+        <label class="collapse" for="collapsible-comments"><h2>Comments ({{len .Comments}}):</h2></label>
+        <input id="collapsible-comments" type="checkbox">
+        <div>
+            {{range $comment := .Comments}}
+                <div id="comment">
+                    <div id="comment-header">
+                        Poster: {{$comment.Name}} <br>
+                        Date: {{$comment.TimeStamp.AsString}}
+                    </div>
+                    <p>{{$comment.CommentBody}}</p>
+                </div> <!--comment-->
+            {{end}}
+        </div> <!--collapsible>
     </div> <!--content-->
 </div> <!--comments-->
 {{end}}

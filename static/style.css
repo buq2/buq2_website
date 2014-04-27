@@ -213,3 +213,21 @@ footer a {
         text-align: left;
     }
 }
+
+/*******
+ * Collapsible
+ *******/
+
+.collapse {
+    cursor:pointer;
+    display:block;
+}
+.collapse + input {
+    display: none;
+}
+.collapse + input + * {
+    display: none;
+}
+.collapse + input:checked + * {
+    display: block;
+}

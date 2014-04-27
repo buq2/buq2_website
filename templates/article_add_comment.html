@@ -1,16 +1,19 @@
+{{$failure_captcha := and (.NewComment.TriedToComment) (not .NewComment.RecaptchaOk)}}
+{{$add_success := and (.NewComment.TriedToComment) (.NewComment.RecaptchaOk)}}
 <div id="addcomment">
     <div class="content">
-        <h2>Add comment:</h2>
+        <label class="collapse" for="collapsible-add-comment"><h2>Add comment:</h2></label>
+        <input id="collapsible-add-comment" type="checkbox" {{if or $failure_captcha $add_success}}checked{{end}}>
         <form name="comment" action="" method="POST">
             Name/Nick: <input class="comment" type="text" name="user" value = "{{.NewComment.Name}}">
-            Comment: <textarea class="comment" name="comment" rows=6 cols=60>{{.NewComment.CommentBody}}</textarea>
+            Comment: <textarea class="comment" name="comment" rows=6 cols=60 {{if or $failure_captcha $add_success}}autofocus="autofocus"{{end}}>{{.NewComment.CommentBody}}</textarea>
             <div id="captchadiv"></div>
-            {{if and (.NewComment.TriedToComment) (not .NewComment.RecaptchaOk)}}
+            {{if $failure_captcha}}
                 <div id="newcomment-failure">
                     Captcha failed
                 </div>
             {{end}}
-            {{if and (.NewComment.TriedToComment) (.NewComment.RecaptchaOk)}}
+            {{if $add_success}}
                 <div id="newcomment-success">
                     Comment added
                 </div>
@@ -19,3 +22,4 @@
         </form>
     </div> <!--addcomment-->
 </div> <!--content-->
+

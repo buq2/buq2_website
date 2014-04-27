@@ -1,10 +1,13 @@
 {{if .Tags}}
 <div id="tags">
     <div class="content">
-        <h2>Tags</h2>
-        {{range $tag := .Tags}}
-            <a href="/tag/{{$tag}}">{{$tag}}</a>
-        {{end}}
+        <label class="collapse" for="collapsible-tags"><h2>Tags ({{len .Tags}}):</h2></label>
+        <input id="collapsible-tags" type="checkbox">
+        <div>
+            {{range $tag := .Tags}}
+                <a href="/tag/{{$tag}}">{{$tag}}</a>
+            {{end}}
+        </div> <!--collapsible>
     </div>
 </div> <!--tags-->
 {{end}}
