@@ -6,10 +6,14 @@
             Comment: <textarea class="comment" name="comment" rows=6 cols=60>{{.NewComment.CommentBody}}</textarea>
             <div id="captchadiv"></div>
             {{if and (.NewComment.TriedToComment) (not .NewComment.RecaptchaOk)}}
-                Captcha failed
+                <div id="newcomment-failure">
+                    Captcha failed
+                </div>
             {{end}}
             {{if and (.NewComment.TriedToComment) (.NewComment.RecaptchaOk)}}
-                Comment added
+                <div id="newcomment-success">
+                    Comment added
+                </div>
             {{end}}
             <input class="comment" type="submit" value="Add comment">
         </form>

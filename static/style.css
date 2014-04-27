@@ -44,6 +44,19 @@ footer {
     border-top: 1px solid #999;
 }
 
+#comment-header {
+    font-size: 0.6em;
+}
+
+#newcomment-failure {
+    color: red
+}
+
+#newcomment-success {
+    color: green
+}
+
+
 /* Used in about.html */
 #about {
     overflow: auto;

@@ -1,9 +1,13 @@
 {{if .Comments}}
 <div id="comments">
     <div class="content">
-    <h2>Comments</h2>
+    <h2>Comments ({{len .Comments}})</h2>
     {{range $comment := .Comments}}
         <div id="comment">
+            <div id="comment-header">
+                Poster: {{$comment.Name}} <br>
+                Date: {{$comment.TimeStamp.AsString}}
+            </div>
             <p>{{$comment.CommentBody}}</p>
         </div> <!--comment-->
     {{end}}
