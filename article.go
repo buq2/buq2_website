@@ -120,7 +120,7 @@ function showRecaptcha() {
 `)
 
 const (
-	articleFolder    = "./articles/"
+	articleFolder    = "/articles/"
 	articleExtension = ".md"
 )
 
@@ -140,6 +140,10 @@ func (this ByCreationDateNewestFirst) Less(i, j int) bool {
 // Helper funcition for sorting
 func (this ByCreationDateNewestFirst) Swap(i, j int) {
 	this[i], this[j] = this[j], this[i]
+}
+
+func GetArticleFolder() string {
+	return siteGlobal.ContentRoot + "/" + articleFolder
 }
 
 func GetAllArticles() []*Article {
@@ -197,7 +201,7 @@ func SplitRawArticlesIntoColumns(articles_raw []*Article) Articles {
 
 func NewArticle(id string) (*Article, error) {
 	// Try to find the data to the article with certain id
-	filename := articleFolder + "/" + id + articleExtension
+	filename := GetArticleFolder() + "/" + id + articleExtension
 	article_data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -220,7 +224,7 @@ func NewArticle(id string) (*Article, error) {
 func getAllArticleIds() []string {
 	ids := []string{}
 
-	files, err := ioutil.ReadDir(articleFolder)
+	files, err := ioutil.ReadDir(GetArticleFolder())
 	if err != nil {
 		return ids
 	}

@@ -15,7 +15,7 @@ type About struct {
 }
 
 func getAbout() (*About, error) {
-	about_data, err := ioutil.ReadFile("about/about.md")
+	about_data, err := ioutil.ReadFile(siteGlobal.ContentRoot + "/about/about.md")
 	if err != nil {
 		return nil, err
 	}

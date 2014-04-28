@@ -28,7 +28,7 @@ type Comments struct {
 }
 
 const (
-	commentFolder    = "./comments/"
+	commentFolder    = "/comments/"
 	commentExtension = ".txt"
 )
 
@@ -37,7 +37,7 @@ var (
 )
 
 func GetCommentFilename(id string) string {
-	return commentFolder + "/" + id + commentExtension
+	return siteGlobal.ContentRoot + "/" + commentFolder + "/" + id + commentExtension
 }
 
 func GetComments(id string) (*[]Comment, error) {

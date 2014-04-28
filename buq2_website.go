@@ -28,6 +28,7 @@ type SiteGlobal struct {
 	GoogleAnalyticsCode string
 	RecaptchaPublicKey  string
 	RecaptchaPrivateKey string
+	ContentRoot         string
 	Scripts             template.HTML
 	TitleBase           string
 	Title               string
@@ -53,6 +54,7 @@ func readGlobalConfig() error {
 	siteGlobal.Email = "spam@buq2.com"
 	siteGlobal.Name = "Matti Jukola"
 	siteGlobal.Address = "http://buq2.com"
+	siteGlobal.ContentRoot = "."
 
 	err = json.Unmarshal(b, &siteGlobal)
 	if err != nil {
