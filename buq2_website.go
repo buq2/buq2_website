@@ -51,7 +51,6 @@ func readGlobalConfig() error {
 
 	// Reasonable refault values
 	siteGlobal.TitleBase = "Still Processing"
-	siteGlobal.Email = "spam@buq2.com"
 	siteGlobal.Name = "Matti Jukola"
 	siteGlobal.Address = "http://buq2.com"
 	siteGlobal.ContentRoot = "."
