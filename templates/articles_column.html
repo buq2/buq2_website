@@ -3,11 +3,13 @@
 {{range $index, $article := .}}
     <section class="article-abr">
         <figure>
-            <a href="/">
+            <a href="/article/{{$article.Id}}">
             <img src="{{$article.Icon}}">
             </a>
         </figure>
         <h1><a href="/article/{{$article.Id}}">{{$article.Title}}</a></h1>
+        <h3>Created: {{$article.DateCreated.AsString}}</h3>
+        <h3>Modified: {{$article.DateModified.AsString}}</h3>
         <h2>{{$article.LongTitle}}</h2>
         <p>{{$article.Description}}</p>
     </section> <!--article-abr-->
