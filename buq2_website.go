@@ -114,6 +114,7 @@ func main() {
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/logout", logoutHandler)
 	http.HandleFunc("/oauth2callback", oauth2callbackHandler)
-	http.Handle("/static/", fileserverHandler())
+	http.Handle("/static/", fileserverHandlerStatic())
+	http.Handle("/content_static/", fileserverHandlerContentStatic())
 	http.ListenAndServe(":8080", nil)
 }
