@@ -257,7 +257,9 @@ func escapeLatexInner(input []byte) []byte {
 
 func escapeLatex(input []byte) []byte {
 	// (?s) sets dot to match new lines
-	re := regexp.MustCompile("(?s)\\$\\$(.*?)\\$\\$")
+	// Escape all text which is between $+ tags
+	// This is not perfect, but good enough for my use
+	re := regexp.MustCompile("(?s)\\$+(.+?)\\$+")
 	output := re.ReplaceAllFunc(input, escapeLatexInner)
 	return output
 }
