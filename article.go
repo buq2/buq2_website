@@ -109,7 +109,7 @@ var articleScripts = template.HTML(`
 <script type="text/javascript" src="http://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 <script>
 function showRecaptcha() {
-	Recaptcha.create("6LdHivISAAAAAFJNxz6TBLzsNYYI7Cl9a3yp6QeW",
+	Recaptcha.create("6LdVRvcSAAAAAAOqeWSPRmZmvBSZZpZ2spv6L_fd",
     "captchadiv",
     {
       theme: "red"
