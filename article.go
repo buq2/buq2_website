@@ -41,6 +41,10 @@ type Article struct {
 	// Options which read from the file, and affect how the data is processed
 	// but should not be displayed on the final HTML
 	CreateToc bool
+
+	// String which will be added after scripts
+	// Used for additional scripts etc
+	HeadAfterScripts template.HTML;
 }
 
 var validArticle = regexp.MustCompile("^/(article)/([a-zA-Z0-9_]+)$")
