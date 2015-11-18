@@ -209,6 +209,8 @@ func NewArticle(id string) (*Article, error) {
 
 	article := new(Article)
 	err = parseRawTextArticleData(article_data, article)
+	// Save HeadAfterScripts from overwriting
+	additional_scripts := article.HeadAfterScripts;
 
 	// Other
 	article.SiteGlobal = siteGlobal
@@ -217,6 +219,7 @@ func NewArticle(id string) (*Article, error) {
 	article.Link = websiteAddress() + "/article/" + article.Id
 	article.Keywords = article.Tags
 	article.Comments, _ = GetComments(id)
+	article.HeadAfterScripts = additional_scripts;
 
 	return article, err
 }
