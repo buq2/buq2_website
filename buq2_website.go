@@ -37,6 +37,10 @@ type SiteGlobal struct {
 	Email               string
 	// Keywords will be added to the header
 	Keywords []string
+
+	// String which will be added after scripts
+	// Used for additional scripts etc
+	HeadAfterScripts template.HTML;
 }
 
 var (
